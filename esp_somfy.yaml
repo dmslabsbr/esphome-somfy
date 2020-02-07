@@ -1,0 +1,62 @@
+esphome:
+  name: esp_somfy
+  platform: ESP8266
+  board: nodemcu
+  
+  includes:
+    - RFsomfy.h
+    - SomfyRts.h
+    
+  libraries:
+    - Ticker
+
+  comment: version 1 - 04/fev/2020
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_pass
+  use_address: 192.168.50.12
+
+web_server:
+  port: 80
+
+# Enable logging
+logger:
+  level: DEBUG
+  esp8266_store_log_strings_in_flash: False
+
+
+api:
+  password: !secret api_pass
+
+ota:
+  password: !secret ota_pass
+
+
+cover:
+- platform: custom
+  lambda: |-
+   std::vector<Cover *> covers;
+   auto rfSomfy = new RFsomfy(0);
+   App.register_component(rfSomfy);
+   auto rfSomfy1 = new RFsomfy(2);
+   App.register_component(rfSomfy1);
+   covers.push_back(rfSomfy1);
+   covers.push_back(rfSomfy);
+   return {covers};
+
+  covers:
+    - name: "Veneziana roxo"
+      device_class: shade
+      id: somfy1
+    - name: "Veneziana casal"
+      device_class: shutter
+      id: somfy2
+
+text_sensor:
+  - platform: version
+    name: "RFsomfy version"
+    
+binary_sensor:
+  - platform: status
+    name: "RFsomfy status"

@@ -1,0 +1,132 @@
+#include "esphome.h"
+#include <SomfyRts.h>
+#include <Ticker.h>
+#define get_ape(constructor) static_cast<RFsomfy *>(const_cast<custom_component::CustomComponentConstructor *>(&constructor)->get_component(0))
+#define ape_cover(ape, pin) get_ape(ape)->get_cover(pin)
+
+class RFsomfy;
+
+using namespace esphome;
+
+
+class RfCover : public Cover {
+    public:
+        RfCover(RFsomfy *parent, uint8_t pin)
+        {
+            this->parent_ = parent;
+            this->pin_ = pin;
+        }
+        void write_state(bool state) override;
+        uint8_t get_pin() { return this->pin_; }
+    
+      protected:
+        RFsomfy *parent_;
+        uint8_t pin_;
+};
+
+class RFsomfy : public Component, public Cover {
+ public:
+  #define STATUS_LED_PIN D1
+  #define REMOTE_FIRST_ADDR 0x121300   // <- Change remote name and remote code here!
+  #define REMOTE_COUNT 2
+  #define remoteId 1      // for testing
+  uint8_t rmx;
+  uint8_t address;
+  
+  RFsomfy(uint8_t _rmx) : Cover() {
+    rmx = _rmx;
+    address = _address;
+    ESP_LOGD("somfy", "rmx %f", rmx);
+    ESP_LOGD("somfy", "address %f", address);
+  }
+  
+  SomfyRts rtsDevices[REMOTE_COUNT] = {
+    SomfyRts(REMOTE_FIRST_ADDR),
+    SomfyRts(REMOTE_FIRST_ADDR + 1)
+  };
+
+  void setup() override {
+    // This will be called by App.setup()
+    ESP_LOGD("espSomfy", "Starting Device");
+    pinMode(STATUS_LED_PIN, OUTPUT);
+    digitalWrite(STATUS_LED_PIN, HIGH);
+    ESP_LOGD("RFsomfy","Somfy ESPHome Cover v0.1");
+    ESP_LOGD("RFsomfy","Initialize remote devices");
+    for (uint8_t i=0; i<REMOTE_COUNT; i++) {
+        rtsDevices[i].init();
+        ESP_LOGD("somfy", "Initialize remote %f", REMOTE_FIRST_ADDR + i);
+        Serial.print("remote: ");
+        Serial.println(REMOTE_FIRST_ADDR + i);
+    }
+  }
+
+    Cover *get_cover(uint8_t pin)
+    {
+        ApeBinaryOutput *output = new ApeBinaryOutput(this, pin);
+        output_pins_.push_back(output);
+        return output;
+    }
+
+
+  /*
+  void write_state(bool state) override {   //switch
+    // This will be called every time the user requests a state change.
+
+    ESP_LOGD("somfy","PROGRAMING");
+
+    // Acknowledge new state by publishing it
+    publish_state(state);
+  }
+  */
+
+  CoverTraits get_traits() override {
+    auto traits = CoverTraits();
+    traits.set_is_assumed_state(false);
+    traits.set_supports_position(true);
+    traits.set_supports_tilt(false);
+    return traits;
+  }
+  
+  char* string2char(String command){
+    if(command.length()!=0){
+        char *p = const_cast<char*>(command.c_str());
+        return p;
+    }
+   }
+  
+  void control(const CoverCall &call) override {
+    // This will be called every time the user requests a state change.
+    
+    ESP_LOGD("Somfy", "Global value is: %d", my_global_int->value());
+    ESP_LOGD("somfy", "rmx %f", rmx);
+    ESP_LOGD("somfy", "address %f", address);
+    
+    if (call.get_position().has_value()) {
+      float pos = *call.get_position();
+      // Write pos (range 0-1) to cover
+      // ...
+
+      ESP_LOGD("somfy","get_position:");
+      ESP_LOGD("somfy", "position is: %f", pos);
+
+      if (pos == 0) {
+        ESP_LOGD("somfy","POS 0");
+        rtsDevices[remoteId-1].sendCommandUp();
+      }
+
+      if (pos == 100) {
+        ESP_LOGD("somfy","POS 100");
+        rtsDevices[remoteId-1].sendCommandDown();
+      }
+
+      // Publish new state
+      this->position = pos;
+      this->publish_state();
+    }
+    if (call.get_stop()) {
+      // User requested cover stop
+      ESP_LOGD("somfy","get_stop");
+      rtsDevices[remoteId-1].sendCommandStop();
+    }
+  }
+};
