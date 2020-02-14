@@ -1,5 +1,10 @@
 #include "SomfyRts.h"
-#include "FS.h"
+#include <FS.h>
+
+//String realSize = String(ESP.getFlashChipRealSize());
+//String ideSize = String(ESP.getFlashChipSize());
+//bool flashCorrectlyConfigured = realSize.equals(ideSize);
+
 
 SomfyRts::SomfyRts(uint32_t remoteID, bool debug) {
     _debug = debug;
@@ -195,7 +200,8 @@ void SomfyRts::_writeRemoteRollingCode(uint16_t code) {
   if (f) {
     f.println(code);
     f.close();
-    Serial.println("Writed code: %d", code);
+    Serial.print("Writed code:");
+    Serial.println(code);
   }
   else {
     Serial.println("File creation failed");

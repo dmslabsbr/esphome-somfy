@@ -1,21 +1,28 @@
 esphome:
   name: esp_somfy
   platform: ESP8266
-  board: nodemcu
+  board: d1_mini_lite
+  
+  arduino_version: espressif8266@2.3.2
   
   includes:
     - RFsomfy.h
     - SomfyRts.h
+    - SomfyRts.cpp
     
-  libraries:
-    - Ticker
+#  libraries:
+#    - Ticker
 
-  comment: version 1 - 04/fev/2020
+  comment: versao 1 - 10/fev/2020
 
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_pass
   use_address: 192.168.50.12
+  manual_ip:
+    static_ip: 192.168.50.12
+    gateway: 192.168.50.1
+    subnet: 255.255.255.0
 
 web_server:
   port: 80
@@ -24,6 +31,7 @@ web_server:
 logger:
   level: DEBUG
   esp8266_store_log_strings_in_flash: False
+  baud_rate: 115200
 
 
 api:
