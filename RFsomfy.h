@@ -155,12 +155,19 @@ class RFsomfy : public Component, public Cover {
     return traits;
   }
   
-  char* string2char(String command){
-    if(command.length()!=0){
-        char *p = const_cast<char*>(command.c_str());
-        return p;
-    }
-    return "";
+  // char* string2char(String command){
+  //   if(command.length()!=0){
+  //       char *p = const_cast<char*>(command.c_str());
+  //       return p;
+  //   }
+  //   return "";
+  //  }
+
+   char const * string2char(String command) {
+      if(command.length()!=0){
+         char *p = const_cast<char*>(command.c_str());
+         return p;
+      } return "";
    }
   
   void control(const CoverCall &call) override {
