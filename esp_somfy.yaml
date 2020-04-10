@@ -13,7 +13,7 @@ esphome:
 #  libraries:
 #    - Ticker
 
-  comment: versao 1 - 10/fev/2020
+  comment: versao 2 - 10/abr/2020
 
 wifi:
   ssid: !secret wifi_ssid
@@ -44,26 +44,42 @@ ota:
 cover:
 - platform: custom
   lambda: |-
-   std::vector<Cover *> covers;
-   auto rfSomfy = new RFsomfy(0);
-   App.register_component(rfSomfy);
-   auto rfSomfy1 = new RFsomfy(2);
-   App.register_component(rfSomfy1);
-   covers.push_back(rfSomfy1);
-   covers.push_back(rfSomfy);
-   return {covers};
+    std::vector<Cover *> covers;
+    auto rfSomfy0 = new RFsomfy(0);
+    rfSomfy0->set_code(100);
+    App.register_component(rfSomfy0);
+    auto rfSomfy1 = new RFsomfy(1);
+    rfSomfy1->set_code(200);
+    App.register_component(rfSomfy1);
+    auto rfSomfy2 = new RFsomfy(2);
+    rfSomfy2->set_code(300);
+    App.register_component(rfSomfy2);
+    covers.push_back(rfSomfy0);
+    covers.push_back(rfSomfy1);
+    covers.push_back(rfSomfy2);
+    return {covers};
 
   covers:
     - name: "Veneziana roxo"
       device_class: shade
-      id: somfy1
+      id: somfy0
     - name: "Veneziana casal"
+      device_class: shutter
+      id: somfy1
+    - name: "Blind 2"
       device_class: shutter
       id: somfy2
 
 text_sensor:
   - platform: version
     name: "RFsomfy version"
+  - platform: custom
+    lambda: |-
+      auto rfSomfyInfo = new RFsomfyInfo();
+      App.register_component(rfSomfyInfo);
+      return {rfSomfyInfo};
+    text_sensors:
+      name: "RFsomfy info"
     
 binary_sensor:
   - platform: status

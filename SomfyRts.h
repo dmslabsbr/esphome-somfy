@@ -18,7 +18,7 @@ class SomfyRts {
   private:
     bool _debug;
     uint32_t _remoteId;
-    uint16_t newRollingCode = 1000;       //<-- Change it!
+    uint16_t newRollingCode = 1150;       //<-- Change it!
     uint16_t rollingCode = 0;
     unsigned char _frame[7];
     char checksum;

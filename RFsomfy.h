@@ -1,4 +1,5 @@
 #include "esphome.h"
+using namespace esphome;
 #include <SomfyRts.h>
 #include <Ticker.h>
 #include "FS.h"
@@ -8,7 +9,70 @@
 // cmd 41 - List files
 // cmd 51 - Test filesystem.
 // cmd 61 - Format filesystem and test.
-// cmd 71 - Show actual roling code
+// cmd 71 - Show actual rolling code
+// cmd 81 - Show all rolling code
+
+#define STATUS_LED_PIN D1
+#define REMOTE_TX_PIN D0
+#define REMOTE_FIRST_ADDR 0x121311   // <- Change remote name and remote code here!
+#define REMOTE_COUNT 3   // <- Number of somfy blinds.
+
+
+int xcode[REMOTE_COUNT];
+uint16_t xwidth{8};
+uint16_t iCode[REMOTE_COUNT];
+
+char const * string2char(String command) {
+  if(command.length()!=0){
+      char *p = const_cast<char*>(command.c_str());
+      return p;
+  } 
+  return "";
+}
+
+String file_path(int remoteId) {
+  String path = "/data/remote/";
+    path += REMOTE_FIRST_ADDR + remoteId;
+    path += ".txt";
+  return path;
+}
+
+uint16_t getCodeFromFile(int remoteId) {
+  uint16_t code = 0;
+  SPIFFS.begin();
+  String arq = file_path(remoteId);
+  if (SPIFFS.exists(arq)) {
+    Serial.println("Reading config");
+    //ESP_LOGI("file", "Reading config");
+    ESP_LOGI("Arq", string2char(arq));
+    File f = SPIFFS.open(arq, "r");
+    if (f) {
+      String line = f.readStringUntil('\n');
+      code = line.toInt();
+      f.close();
+    }
+    else {
+      Serial.println("File open failed");
+      ESP_LOGI("file", "File open failed");
+      code = -1;
+    }
+  }
+  SPIFFS.end();
+  return code;
+}
+
+// get code from all files
+void getCodeFromAllFiles() {
+  uint16_t code = 0;
+  ESP_LOGW("somfy", "* Get all rolling codes from files");
+  for (int i=0; i<REMOTE_COUNT; i++) {
+    code = getCodeFromFile(i);
+    ESP_LOGI("somfy", "Remoteid %d", REMOTE_FIRST_ADDR + i);
+    ESP_LOGI("file", "Code: %d", code);
+    xcode[i] = code;
+  }
+}
+
 
 class RFsomfy : public Component, public Cover {
 
@@ -16,15 +80,19 @@ class RFsomfy : public Component, public Cover {
   int index;
   Ticker ticker;
 
+ protected:
+   uint8_t width{8};
   
  public:
-  #define STATUS_LED_PIN D1
-  #define REMOTE_TX_PIN D0
-  #define REMOTE_FIRST_ADDR 0x121311   // <- Change remote name and remote code here!
-  #define REMOTE_COUNT 3
   int remoteId = -1;    
   unsigned char frame[7];
- 
+
+  void set_code(const uint16_t width) { 
+    this->width = width;
+    xwidth = width;
+    iCode[remoteId] = width;
+    }
+
   /*
   void tickLed(void) {
       //toggle state
@@ -66,13 +134,13 @@ class RFsomfy : public Component, public Cover {
         ESP_LOGW("info","writefile-failed");
      }
     else
-    {
+     {
         ESP_LOGW("info","Write_OK");
         f.print("networkConfig");
         f.print("#");
         f.flush();
         f.close();
-    }
+     }
     }
 
     void testFs() {
@@ -121,12 +189,13 @@ class RFsomfy : public Component, public Cover {
       String fp = file_path(i);
       Serial.print("Init remote: ");
       Serial.println(fp);
+      xcode[i] = i;
     }
-    //rtsDevices[index].init();
-    //ESP_LOGD("somfy", "Initialize remote %d", REMOTE_FIRST_ADDR + index);
+
     digitalWrite(STATUS_LED_PIN, LOW);
 
-    testFs();
+    //  testFs();
+    getCodeFromAllFiles();
   }
 
   // delete rolling code . 0....n
@@ -139,13 +208,7 @@ class RFsomfy : public Component, public Cover {
       ESP_LOGD("RFsomfy","Deleted remote %i", remoteId);
       SPIFFS.end();
   }
-  
-  String file_path(int remoteId) {
-    String path = "/data/remote/";
-      path += REMOTE_FIRST_ADDR + remoteId;
-      path += ".txt";
-    return path;
-  }
+
 
   CoverTraits get_traits() override {
     auto traits = CoverTraits();
@@ -155,20 +218,6 @@ class RFsomfy : public Component, public Cover {
     return traits;
   }
   
-  // char* string2char(String command){
-  //   if(command.length()!=0){
-  //       char *p = const_cast<char*>(command.c_str());
-  //       return p;
-  //   }
-  //   return "";
-  //  }
-
-   char const * string2char(String command) {
-      if(command.length()!=0){
-         char *p = const_cast<char*>(command.c_str());
-         return p;
-      } return "";
-   }
   
   void control(const CoverCall &call) override {
     // This will be called every time the user requests a state change.
@@ -176,7 +225,7 @@ class RFsomfy : public Component, public Cover {
     digitalWrite(STATUS_LED_PIN, HIGH);
     delay(50);
     
-    ESP_LOGD("RFsomfy", "Using remote %d", REMOTE_FIRST_ADDR + index);
+    ESP_LOGW("RFsomfy", "Using remote %d", REMOTE_FIRST_ADDR + index);
     ESP_LOGW("RFsomfy", "Remoteid %d", remoteId);
     ESP_LOGW("RFsomfy", "index %d", index);
     
@@ -285,39 +334,59 @@ class RFsomfy : public Component, public Cover {
      }
      
      if (xpos == 71) {
-      uint16_t code = 0;
-      SPIFFS.begin();
-      String arq = file_path(remoteId);
-      if (SPIFFS.exists(arq)) {
-        Serial.println("Reading config");
-        ESP_LOGI("file", "Reading config");
-        ESP_LOGI("Arq", string2char(arq));
-        File f = SPIFFS.open(arq, "r");
-        if (f) {
-          String line = f.readStringUntil('\n');
-          code = line.toInt();
-          f.close();
-        }
-        else {
-          Serial.println("File open failed");
-          ESP_LOGI("file", "File open failed");
-        }
-      }
-      ESP_LOGI("file", "Code: %d", code);
-      SPIFFS.end();
+       // get roling code from file
+       uint16_t code = 0;
+       code = getCodeFromFile(remoteId);
+       ESP_LOGI("file", "Code: %d", code);
+       xcode[remoteId] = code;
      }
+
+     if (xpos == 81) {
+       // get all roling code from file
+      getCodeFromAllFiles();
+     }
+
+    this->tilt = tpos;
+    this->publish_state();
       
-      
-      
-      this->tilt = tpos;
-      this->publish_state();
-      
-      
-      
-    }
+  }
     
     digitalWrite(STATUS_LED_PIN, LOW);
     delay(50);
     
+  }
+};
+
+class RFsomfyInfo : public PollingComponent, public TextSensor {
+ public:
+  // constructor
+  RFsomfyInfo() : PollingComponent(15000) {}
+
+  void setup() override {
+    // This will be called by App.setup()
+  }
+  void update() override {
+    // This will be called every "update_interval" milliseconds.
+    // Publish state
+    char tmp[REMOTE_COUNT * 100];
+    strcpy (tmp,"");
+    char str[5];
+    char str2[3];
+    String rem;
+    for (int i=0; i<REMOTE_COUNT; i++) {
+      String rem = String(REMOTE_FIRST_ADDR + i, HEX);
+      /*
+      itoa(xcode[i],str,10);
+      itoa(i, str2, 10);
+      strcat(tmp, "(");
+      strcat(tmp, str2);
+      */
+      char linha[100];
+      sprintf(linha, "\n ( %u - #%s) - code: %d / ", i, string2char(rem), xcode[i]);
+      strcat(tmp, linha);
+      ESP_LOGI("width", "icode: %d", iCode[i]);
+    }
+    publish_state(tmp);
+    ESP_LOGI("width", "width: %u", xwidth);
   }
 };
