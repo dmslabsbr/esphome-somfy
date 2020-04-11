@@ -10,7 +10,8 @@ using namespace esphome;
 // cmd 51 - Test filesystem.
 // cmd 61 - Format filesystem and test.
 // cmd 71 - Show actual rolling code
-// cmd 81 - Show all rolling code
+// cmd 81 - Get all rolling code
+// cmd 85 - Write new rolling codes
 
 #define STATUS_LED_PIN D1
 #define REMOTE_TX_PIN D0
@@ -19,7 +20,6 @@ using namespace esphome;
 
 
 int xcode[REMOTE_COUNT];
-uint16_t xwidth{8};
 uint16_t iCode[REMOTE_COUNT];
 
 char const * string2char(String command) {
@@ -73,6 +73,22 @@ void getCodeFromAllFiles() {
   }
 }
 
+void writeCode2file(int remoteId, uint16_t code) {
+  SPIFFS.begin();
+  Serial.println("Writing config");
+  String arq = file_path(remoteId);
+  File f = SPIFFS.open(arq, "w");
+  if (f) {
+    f.println(code);
+    f.close();
+    ESP_LOGI("somfy", "Writed code: %d", code);
+  }
+  else {
+    ESP_LOGW("somfy","File creation failed");
+  }
+  SPIFFS.end();
+}
+
 
 class RFsomfy : public Component, public Cover {
 
@@ -80,17 +96,18 @@ class RFsomfy : public Component, public Cover {
   int index;
   Ticker ticker;
 
- protected:
-   uint8_t width{8};
+ //protected:
+ //  uint8_t width{8};
   
  public:
   int remoteId = -1;    
   unsigned char frame[7];
 
-  void set_code(const uint16_t width) { 
-    this->width = width;
-    xwidth = width;
-    iCode[remoteId] = width;
+  void set_code(const uint16_t code) { 
+    // this->width = width;
+    iCode[remoteId] = code;
+    writeCode2file(remoteId, code);
+    xcode[remoteId] = code;
     }
 
   /*
@@ -345,10 +362,17 @@ class RFsomfy : public Component, public Cover {
        // get all roling code from file
       getCodeFromAllFiles();
      }
+     if (xpos == 85) {
+       // Write new roling codes
+        for (int i=0; i<REMOTE_COUNT; i++) {
+          writeCode2file(REMOTE_FIRST_ADDR + i, iCode[i]);
+        }
+     }
 
+    /* Don't publish
     this->tilt = tpos;
     this->publish_state();
-      
+    */ 
   }
     
     digitalWrite(STATUS_LED_PIN, LOW);
@@ -373,6 +397,7 @@ class RFsomfyInfo : public PollingComponent, public TextSensor {
     char str[5];
     char str2[3];
     String rem;
+    boolean bl_code {false};
     for (int i=0; i<REMOTE_COUNT; i++) {
       String rem = String(REMOTE_FIRST_ADDR + i, HEX);
       /*
@@ -384,9 +409,14 @@ class RFsomfyInfo : public PollingComponent, public TextSensor {
       char linha[100];
       sprintf(linha, "\n ( %u - #%s) - code: %d / ", i, string2char(rem), xcode[i]);
       strcat(tmp, linha);
-      ESP_LOGI("width", "icode: %d", iCode[i]);
+      if (iCode[i] != 0) {
+        bl_code = true;
+        ESP_LOGI("icode", "icode: %d", iCode[i]);
+      }
     }
     publish_state(tmp);
-    ESP_LOGI("width", "width: %u", xwidth);
+    if (bl_code) {
+      ESP_LOGW("set_code", "Atention! After set code, and it works, remove it from your YAML");
+    }
   }
 };

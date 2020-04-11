@@ -1,11 +1,6 @@
 #include "SomfyRts.h"
 #include <FS.h>
 
-//String realSize = String(ESP.getFlashChipRealSize());
-//String ideSize = String(ESP.getFlashChipSize());
-//bool flashCorrectlyConfigured = realSize.equals(ideSize);
-
-
 SomfyRts::SomfyRts(uint32_t remoteID, bool debug) {
     _debug = debug;
     _remoteId = remoteID;
@@ -21,9 +16,13 @@ void SomfyRts::init() {
   digitalWrite(REMOTE_TX_PIN, LOW);
 
   rollingCode = _readRemoteRollingCode();
-  if (rollingCode < newRollingCode) {
-    _writeRemoteRollingCode(newRollingCode);
+  if (rollingCode == 0 ) {
+    // Make rolling code set to work.
+    if (rollingCode < newRollingCode) {
+      _writeRemoteRollingCode(newRollingCode);
+    }
   }
+
   if (Serial) {
       Serial.print("Simulated remote number : "); Serial.println(_remoteId, HEX);
       Serial.print("Current rolling code    : "); Serial.println(rollingCode);
