@@ -23,11 +23,7 @@ __Software:__
 ![1st Prototype](/20200402_111304.jpg)
 
 
-__Blind control interface__
-
-![Blind control interface](/Blind%20control.png)
-
-__Install__:
+## Install:
 
 1. Copy the files from this repository to the `/config/esphome/` directory.
 * RFsomfy.h
@@ -92,3 +88,52 @@ cover:
 **ATTENTION**
 
 You do not need to use this line `rfSomfy0->set_code(1);` , only if you need to manually set the first code.
+
+5. Compile and Upload customized ESPhome to your device.
+
+## How to configure
+
+1. Insert your new entities in your home assistant's dashboard.
+
+      They should have names similar to these:
+      * cover.veneziana_roxo
+      * cover.blind_roxo
+      * cover.blind_2
+
+![Blind Card](/Blind%20card.png)
+
+## How to program
+
+
+1. Choose one of the entities and open it in full mode.
+
+
+    __Blind control interface__
+
+![Blind control interface](/Blind%20control.png)
+
+2. Put your blind in programming mode. If necessary, consult the blind manual or the manufacturer.
+
+3. Slide the bar that controls the tilt position to the value 11.
+
+   a) This causes your ESP device to enter programming mode. As if it were an additional remote control.
+  
+   b) If the programming without problems, your blind will move immediately.
+
+   c) In case of problems, check your device's log.
+
+## Blind configuration commands
+
+
+Some commands were created, accessed by tilting the blind to try to facilitate debugging and configuration.
+
+```
+// cmd 11 - program mode
+// cmd 21 - delete rolling code file
+// cmd 41 - List files
+// cmd 51 - Test filesystem.
+// cmd 61 - Format filesystem and test.
+// cmd 71 - Show actual rolling code
+// cmd 81 - Get all rolling code
+// cmd 85 - Write new rolling codes
+```
