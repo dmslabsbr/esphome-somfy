@@ -16,11 +16,18 @@ __Software:__
 * Running Home Assistant [https://www.home-assistant.io/]
 * ESPhome component [https://esphome.io/]
 
-![scheme](/esquema.png)
+![scheme](/img/esquema.png)
+
+  I found on the internet some instructions on how to make an antenna for 433.42Mhz transmission.
+
+  It was better than just a thread. In fact, I think that some problems in programming the controls have improved.
+
+![Antenna](/img/Antenna.png)
 
 
 **1st Prototype**
-![1st Prototype](/20200402_111304.jpg)
+![1st Prototype](/img/20200402_111304.jpg)
+
 
 
 ## Install:
@@ -100,21 +107,24 @@ You do not need to use this line `rfSomfy0->set_code(1);` , only if you need to 
       * cover.blind_roxo
       * cover.blind_2
 
-![Blind Card](/Blind%20card.png)
+![Blind Card](/img/Blind%20card.png)
 
 ## How to program
 
+1. For programming, place your ESPHome device as close as possible to the blind to be controlled.
 
-1. Choose one of the entities and open it in full mode.
+   Once programmed, you can place it further away, in a position that is close to all the blinds to be controlled.
+
+2. Choose one of the entities and open it in full mode.
 
 
     __Blind control interface__
 
-![Blind control interface](/Blind%20control.png)
+![Blind control interface](/img/Blind%20control.png)
 
-2. Put your blind in programming mode. If necessary, consult the blind manual or the manufacturer.
+3. Put your blind in programming mode. If necessary, consult the blind manual or the manufacturer.
 
-3. Slide the bar that controls the tilt position to the value 11.
+4. Slide the bar that controls the tilt position to the value 11.
 
    a) This causes your ESP device to enter programming mode. As if it were an additional remote control.
   
@@ -123,7 +133,6 @@ You do not need to use this line `rfSomfy0->set_code(1);` , only if you need to 
    c) In case of problems, check your device's log.
 
 ## Blind configuration commands
-
 
 Some commands were created, accessed by tilting the blind to try to facilitate debugging and configuration.
 

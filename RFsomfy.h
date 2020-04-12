@@ -411,7 +411,7 @@ class RFsomfyInfo : public PollingComponent, public TextSensor {
       strcat(tmp, linha);
       if (iCode[i] != 0) {
         bl_code = true;
-        ESP_LOGI("icode", "icode: %d", iCode[i]);
+        ESP_LOGI("icode", "%u : icode: %d", i, iCode[i]);
       }
     }
     publish_state(tmp);

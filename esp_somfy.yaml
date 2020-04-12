@@ -46,13 +46,12 @@ cover:
   lambda: |-
     std::vector<Cover *> covers;
     auto rfSomfy0 = new RFsomfy(0);
-    rfSomfy0->set_code(100);
+    rfSomfy0->set_code(50);
     App.register_component(rfSomfy0);
     auto rfSomfy1 = new RFsomfy(1);
-    rfSomfy1->set_code(200);
+    rfSomfy1->set_code(100);  // Set initial rolling code. After it works, remove this line.
     App.register_component(rfSomfy1);
     auto rfSomfy2 = new RFsomfy(2);
-    rfSomfy2->set_code(300);
     App.register_component(rfSomfy2);
     covers.push_back(rfSomfy0);
     covers.push_back(rfSomfy1);
@@ -60,13 +59,13 @@ cover:
     return {covers};
 
   covers:
-    - name: "Veneziana roxo"
+    - name: "Blind 2"
       device_class: shade
       id: somfy0
     - name: "Veneziana casal"
       device_class: shutter
       id: somfy1
-    - name: "Blind 2"
+    - name: "Veneziana roxo"
       device_class: shutter
       id: somfy2
 
