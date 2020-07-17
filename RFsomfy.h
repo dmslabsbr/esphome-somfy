@@ -5,6 +5,7 @@ using namespace esphome;
 #include "FS.h"
 
 // cmd 11 - program mode
+// cmd 16 - porgram mode for grail curtains
 // cmd 21 - delete rolling code file
 // cmd 41 - List files
 // cmd 51 - Test filesystem.
