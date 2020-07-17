@@ -296,6 +296,12 @@ class RFsomfy : public Component, public Cover {
         rtsDevices[remoteId].sendCommandProg();
         delay(1000);
       }
+      if (xpos == 16) {
+        ESP_LOGD("tilt","program mode - grail");
+        digitalWrite(STATUS_LED_PIN, HIGH);
+        rtsDevices[remoteId].sendCommandProgGrail();
+        delay(1000);
+      }
       if (xpos == 21) {
         ESP_LOGD("tilt","delete file");
         digitalWrite(STATUS_LED_PIN, HIGH);
