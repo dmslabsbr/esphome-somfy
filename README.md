@@ -138,6 +138,7 @@ Some commands were created, accessed by tilting the blind to try to facilitate d
 
 ```
 // cmd 11 - program mode
+// cmd 16 - program mode for grail devices
 // cmd 21 - delete rolling code file
 // cmd 41 - List files
 // cmd 51 - Test filesystem.
