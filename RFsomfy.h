@@ -5,6 +5,7 @@ using namespace esphome;
 #include "FS.h"
 
 // cmd 11 - program mode
+// cmd 16 - porgram mode for grail curtains
 // cmd 21 - delete rolling code file
 // cmd 41 - List files
 // cmd 51 - Test filesystem.
@@ -293,6 +294,12 @@ class RFsomfy : public Component, public Cover {
         ESP_LOGD("tilt","program mode");
         digitalWrite(STATUS_LED_PIN, HIGH);
         rtsDevices[remoteId].sendCommandProg();
+        delay(1000);
+      }
+      if (xpos == 16) {
+        ESP_LOGD("tilt","program mode - grail");
+        digitalWrite(STATUS_LED_PIN, HIGH);
+        rtsDevices[remoteId].sendCommandProgGrail();
         delay(1000);
       }
       if (xpos == 21) {

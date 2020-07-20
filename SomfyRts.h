@@ -34,6 +34,7 @@ class SomfyRts {
     void sendCommandDown();
     void sendCommandStop();
     void sendCommandProg();
+    void sendCommandProgGrail();
     void buildFrame(unsigned char *frame, unsigned char button);
     void sendCommand(unsigned char *frame, unsigned char sync);
 };
